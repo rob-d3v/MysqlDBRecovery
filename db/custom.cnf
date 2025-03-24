@@ -1,0 +1,38 @@
+[mysqld]
+# Configurações de memória
+innodb_buffer_pool_size = 1G
+innodb_log_buffer_size = 64M
+innodb_log_file_size = 256M
+
+# Configurações de recuperação
+innodb_force_recovery = 0
+innodb_fast_shutdown = 0
+innodb_file_per_table = 1
+
+# Configurações de timeout
+wait_timeout = 28800
+interactive_timeout = 28800
+
+# Configurações de importação
+max_allowed_packet = 1G
+
+# Otimizações para recuperação
+innodb_flush_log_at_trx_commit = 2
+innodb_flush_method = O_DIRECT
+innodb_doublewrite = 1
+
+# Configurações de thread e conexões
+max_connections = 1000
+thread_cache_size = 128
+thread_stack = 256K
+
+# Configurações de character set
+character-set-server = utf8mb4
+collation-server = utf8mb4_general_ci
+
+# Configurações de log
+log_error = /var/log/mysql/error.log
+slow_query_log = 1
+slow_query_log_file = /var/log/mysql/slow.log
+long_query_time = 2
+

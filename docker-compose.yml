@@ -1,0 +1,48 @@
+version: '3.8'
+services:
+  webapp:
+    build: ./webapp
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./webapp:/app
+      - ./IBD_FILES:/app/IBD_FILES
+      - backup_volume:/app/backup
+      - recovery_logs:/app/logs
+      - mysql_data:/var/lib/mysql
+    environment:
+      - FLASK_APP=app.py
+      - FLASK_ENV=development
+      - MYSQL_HOST=db
+      - MYSQL_USER=root
+      - MYSQL_PASSWORD=12545121
+      - MYSQL_DATABASE=batatinha123
+    depends_on:
+      - db
+    networks:
+      - recovery-network
+
+  db:
+    build: ./db
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - backup_volume:/backup
+      - ./IBD_FILES:/IBD_FILES:delegated
+    environment:
+      - MYSQL_ROOT_PASSWORD=12545121
+      - MYSQL_DATABASE=batatinha123
+      - TZ=America/Sao_Paulo
+    networks:
+      - recovery-network
+    command: --innodb-file-per-table=1 --innodb-strict-mode=0 --innodb-fast-shutdown=0
+
+volumes:
+  mysql_data:
+  recovery_logs:
+  backup_volume:
+
+networks:
+  recovery-network:
+    driver: bridge
