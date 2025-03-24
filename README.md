@@ -15,6 +15,7 @@ Uma solução containerizada para recuperação de bancos de dados MySQL a parti
 - [Requisitos](#requisitos)
 - [Instalação e Configuração](#instalação-e-configuração)
 - [Como Usar](#como-usar)
+- [Configuração de Versões](#configuração-de-versões)
 - [Como Funciona](#como-funciona)
 - [Limitações e Considerações](#limitações-e-considerações)
 - [Solução de Problemas](#solução-de-problemas)
@@ -35,6 +36,7 @@ Esta ferramenta foi desenvolvida para permitir a recuperação de tabelas MySQL/
 - **Logs Detalhados**: Registro de todas as operações realizadas
 - **Sistema de Backup**: Backup automático antes de operações críticas
 - **Compatibilidade**: Suporte para diversas versões do MySQL/MariaDB
+- **Flexibilidade de Versões**: Alteração fácil entre diferentes versões do MySQL/MariaDB via Docker
 
 ## 🏗️ Estrutura do Projeto
 
@@ -51,7 +53,7 @@ docker-recovery-mysql/
     ├── recovery.sh            # Script de recuperação
     ├── requirements.txt       # Dependências Python
     ├── qrCode.png             # QR Code para doações
-    └── index.html         # Interface de usuário
+    └── index.html             # Interface de usuário
 ```
 
 ## 📋 Requisitos
@@ -123,6 +125,47 @@ http://localhost:5000
    - Use qualquer cliente MySQL para conectar ao banco de dados na porta 3306
    - Credenciais padrão: root / 12545121
 
+## 🔄 Configuração de Versões
+
+Uma das grandes vantagens desta solução é a facilidade de alternar entre diferentes versões do MySQL/MariaDB graças ao Docker, proporcionando maior compatibilidade com seus arquivos `.ibd` de origem.
+
+### Alterando a versão do MySQL/MariaDB
+
+1. **Edite o arquivo `docker-compose.yml`**:
+
+   ```yaml
+   services:
+     db:
+       build:
+         context: ./db
+         args:
+           MYSQL_VERSION: 10.3.34  # Altere para a versão desejada
+   ```
+
+   Ou, alternativamente, modifique diretamente o `Dockerfile` na pasta `db/`:
+
+   ```dockerfile
+   ARG MYSQL_VERSION=10.3.34
+   FROM mariadb:${MYSQL_VERSION}
+   ```
+
+2. **Reconstrua o contêiner**:
+
+   ```bash
+   docker-compose down
+   docker-compose build db
+   docker-compose up -d
+   ```
+
+### Versões Compatíveis Testadas
+
+| Tipo    | Versões Testadas             | Observações                             |
+|---------|------------------------------|----------------------------------------|
+| MariaDB | 10.3.34, 10.4.28, 10.5.21    | Recomendado para maior compatibilidade  |
+| MySQL   | 5.7.42, 8.0.33               | Compatível com arquivos mais recentes   |
+
+A escolha da versão correta é crucial para o sucesso da recuperação, pois os formatos de arquivo `.ibd` podem variar significativamente entre versões.
+
 ## ⚙️ Como Funciona
 
 O processo de recuperação segue estas etapas:
@@ -186,8 +229,19 @@ Verifique os logs da aplicação:
 docker-compose logs webapp
 ```
 
+### Problemas com versões específicas
+
+Se encontrar problemas com uma versão específica do MySQL/MariaDB:
+```bash
+# Verifique a compatibilidade do arquivo .ibd
+docker-compose exec db mysqlcheck -u root -p --check-only nome_do_banco nome_da_tabela
+
+# Tente com outra versão seguindo as instruções da seção "Configuração de Versões"
+```
+
 ## 🔮 Implementações Futuras
 
+- **Seletor de Versões na Interface**: Implementação de um seletor de versões do MySQL/MariaDB diretamente na interface web
 - **Interface de Administração Avançada**: Painel completo para gerenciamento de bancos recuperados
 - **Suporte para arquivos FRM**: Adicionar suporte para arquivos `.frm` para melhorar a precisão da recuperação
 - **Detecção Automática de Estrutura**: Identificação e reconstrução automática da estrutura da tabela
@@ -198,6 +252,8 @@ docker-compose logs webapp
 - **Integração com Serviços de Nuvem**: Suporte para recuperar arquivos de buckets S3, Google Cloud Storage, etc
 - **Versão Standalone**: Versão sem Docker para ambientes com restrições
 - **Análise de Integridade**: Ferramentas para análise da integridade dos dados recuperados
+- **Multi-container com Diferentes Versões**: Possibilidade de executar múltiplos contêineres com diferentes versões simultaneamente
+- **Migração Inteligente Entre Versões**: Ferramentas para facilitar a migração de dados entre diferentes versões do MySQL/MariaDB
 
 ## 🤝 Contribuições
 
