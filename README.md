@@ -16,9 +16,11 @@ Uma solução containerizada para recuperação de bancos de dados MySQL a parti
 - [Instalação e Configuração](#instalação-e-configuração)
 - [Como Usar](#como-usar)
 - [Como Funciona](#como-funciona)
+- [Limitações e Considerações](#limitações-e-considerações)
 - [Solução de Problemas](#solução-de-problemas)
 - [Implementações Futuras](#implementações-futuras)
 - [Contribuições](#contribuições)
+- [Apoie o Projeto](#apoie-o-projeto)
 - [Licença](#licença)
 
 ## 🔍 Visão Geral
@@ -48,6 +50,7 @@ docker-recovery-mysql/
     ├── app.py                 # Aplicação principal
     ├── recovery.sh            # Script de recuperação
     ├── requirements.txt       # Dependências Python
+    ├── qrCode.png             # QR Code para doações
     └── templates/             # Templates HTML
         └── index.html         # Interface de usuário
 ```
@@ -139,6 +142,18 @@ O processo de recuperação segue estas etapas:
 
 Internamente, o processo usa os recursos do InnoDB para reconstruir metadados e restabelecer a estrutura da tabela a partir dos dados armazenados no arquivo `.ibd`.
 
+## ⚠️ Limitações e Considerações
+
+É fundamental destacar algumas limitações importantes deste processo de recuperação:
+
+- **Compatibilidade de Versão**: Para garantir uma recuperação bem-sucedida, é necessário utilizar um script de criação de tabela que seja compatível com a versão atual do MySQL/MariaDB ou com a versão na qual o arquivo `.ibd` foi originalmente criado. Incompatibilidades de versão podem resultar em falhas durante o processo de recuperação.
+
+- **Ausência de Índices e Configurações**: O processo de recuperação restaura apenas os dados contidos no tablespace. Índices, chaves estrangeiras, triggers e outras configurações específicas da tabela não são recuperados automaticamente. Após a recuperação, recomenda-se:
+  1. Primeiro criar manualmente a estrutura da tabela com todos os índices e configurações necessárias
+  2. Em seguida, transferir apenas os dados da tabela recuperada para a nova estrutura através de operações de INSERT
+
+Esta abordagem garante que tanto os dados quanto a integridade estrutural da tabela sejam adequadamente restaurados.
+
 ## ❓ Solução de Problemas
 
 ### Os contêineres não iniciam
@@ -195,10 +210,21 @@ Contribuições são bem-vindas! Para contribuir:
 4. Push para a branch (`git push origin feature/nova-feature`)
 5. Abra um Pull Request
 
+## 💝 Apoie o Projeto
+
+Se este projeto foi útil para você e deseja contribuir para seu desenvolvimento contínuo, considere fazer uma doação:
+
+**PIX**: 
+```
+00020126360014BR.GOV.BCB.PIX0114+5562920005056520400005303986540510.005802BR5925Robson Pereira da Costa J6009SAO PAULO62140510ktr10bIeyP63046E56
+```
+
+Você também pode escanear o QR Code disponível no arquivo `qrCode.png` na pasta `webapp` do projeto.
+
 ## 📄 Licença
 
 Este projeto está licenciado sob a licença MIT - veja o arquivo LICENSE para detalhes.
 
 ---
 
-Desenvolvido com ❤️ para ajudar DBA's em momentos de crise.
+Desenvolvido por robd3v para ajudar vcs em momentos de crise.
