@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, jsonify, send_file
+from flask import Flask, render_template, request, jsonify, send_file, send_from_directory
 from flask_socketio import SocketIO
 import subprocess
 import os
@@ -6,10 +6,9 @@ import threading
 import time
 from datetime import datetime
 import eventlet
-
 eventlet.monkey_patch()
 
-app = Flask(__name__)
+app = Flask(__name__, template_folder='.', static_folder='static')
 socketio = SocketIO(app, async_mode='eventlet')
 
 # Configurações
@@ -17,33 +16,49 @@ UPLOAD_FOLDER = 'IBD_FILES'
 BACKUP_FOLDER = '/app/backup'
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 os.makedirs(BACKUP_FOLDER, exist_ok=True)
+os.makedirs('static', exist_ok=True)
+
+# Garantir que o QR code esteja disponível
+QR_CODE_FILE = 'qrCode.png'
+STATIC_QR_CODE = os.path.join('static', QR_CODE_FILE)
+
+# Copiar o QR code para a pasta static se não existir
+if os.path.exists(QR_CODE_FILE) and not os.path.exists(STATIC_QR_CODE):
+    try:
+        import shutil
+        shutil.copy(QR_CODE_FILE, STATIC_QR_CODE)
+    except Exception as e:
+        app.logger.error(f"Erro ao copiar QR code: {str(e)}")
 
 @app.route('/')
 def index():
     return render_template('index.html')
 
+@app.route('/static/<path:filename>')
+def serve_static(filename):
+    return send_from_directory('static', filename)
+
 @app.route('/upload', methods=['POST'])
 def upload_files():
     if 'ibd_files[]' not in request.files:
         return jsonify({'error': 'No files provided'}), 400
-
+    
     files = request.files.getlist('ibd_files[]')
     create_sql = request.files.get('create_sql')
-
+    
     if not files or not create_sql:
         return jsonify({'error': 'Missing required files'}), 400
-
+    
     # Limpa diretório
     for f in os.listdir(UPLOAD_FOLDER):
         os.remove(os.path.join(UPLOAD_FOLDER, f))
-
+    
     # Salva arquivos
     for file in files:
         if file.filename.endswith('.ibd'):
             file.save(os.path.join(UPLOAD_FOLDER, file.filename))
     
     create_sql.save('create.sql')
-
     return jsonify({'message': 'Files uploaded successfully'})
 
 @app.route('/start_recovery', methods=['POST'])
@@ -55,7 +70,7 @@ def start_recovery():
             stderr=subprocess.STDOUT,
             universal_newlines=True
         )
-
+        
         while True:
             output = process.stdout.readline()
             if output == '' and process.poll() is not None:
@@ -65,7 +80,7 @@ def start_recovery():
                 
         rc = process.poll()
         socketio.emit('recovery_complete', {'success': rc == 0})
-
+    
     eventlet.spawn(run_recovery)
     return jsonify({'message': 'Recovery process started'})
 
@@ -87,7 +102,7 @@ def download_backup():
         if not os.path.exists(backup_path):
             app.logger.error(f"Backup file not found: {backup_path}")
             return jsonify({'error': 'Backup file not found'}), 404
-
+            
         try:
             return send_file(
                 backup_path,
