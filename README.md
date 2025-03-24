@@ -51,8 +51,7 @@ docker-recovery-mysql/
     ├── recovery.sh            # Script de recuperação
     ├── requirements.txt       # Dependências Python
     ├── qrCode.png             # QR Code para doações
-    └── templates/             # Templates HTML
-        └── index.html         # Interface de usuário
+    └── index.html         # Interface de usuário
 ```
 
 ## 📋 Requisitos
