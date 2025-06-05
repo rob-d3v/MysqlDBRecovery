@@ -16,7 +16,7 @@ services:
       - MYSQL_HOST=db
       - MYSQL_USER=root
       - MYSQL_PASSWORD=12545121
-      - MYSQL_DATABASE=batatinha123
+      - MYSQL_DATABASE=Firebee2_0
     depends_on:
       - db
     networks:
@@ -32,7 +32,7 @@ services:
       - ./IBD_FILES:/IBD_FILES:delegated
     environment:
       - MYSQL_ROOT_PASSWORD=12545121
-      - MYSQL_DATABASE=batatinha123
+      - MYSQL_DATABASE=Firebee2_0
       - TZ=America/Sao_Paulo
     networks:
       - recovery-network

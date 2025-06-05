@@ -1,3 +1,5 @@
+# PS: do not use 'USE DB_NAME' in your create.sql , ok thx.
+
 # MySQL Database Recovery Tool
 
 ![MySQL Recovery](https://img.shields.io/badge/MySQL-Recovery-blue)
@@ -15,13 +17,10 @@ Uma solução containerizada para recuperação de bancos de dados MySQL a parti
 - [Requisitos](#requisitos)
 - [Instalação e Configuração](#instalação-e-configuração)
 - [Como Usar](#como-usar)
-- [Configuração de Versões](#configuração-de-versões)
 - [Como Funciona](#como-funciona)
-- [Limitações e Considerações](#limitações-e-considerações)
 - [Solução de Problemas](#solução-de-problemas)
 - [Implementações Futuras](#implementações-futuras)
 - [Contribuições](#contribuições)
-- [Apoie o Projeto](#apoie-o-projeto)
 - [Licença](#licença)
 
 ## 🔍 Visão Geral
@@ -36,7 +35,6 @@ Esta ferramenta foi desenvolvida para permitir a recuperação de tabelas MySQL/
 - **Logs Detalhados**: Registro de todas as operações realizadas
 - **Sistema de Backup**: Backup automático antes de operações críticas
 - **Compatibilidade**: Suporte para diversas versões do MySQL/MariaDB
-- **Flexibilidade de Versões**: Alteração fácil entre diferentes versões do MySQL/MariaDB via Docker
 
 ## 🏗️ Estrutura do Projeto
 
@@ -52,8 +50,8 @@ docker-recovery-mysql/
     ├── app.py                 # Aplicação principal
     ├── recovery.sh            # Script de recuperação
     ├── requirements.txt       # Dependências Python
-    ├── qrCode.png             # QR Code para doações
-    └── index.html             # Interface de usuário
+    └── templates/             # Templates HTML
+        └── index.html         # Interface de usuário
 ```
 
 ## 📋 Requisitos
@@ -125,47 +123,6 @@ http://localhost:5000
    - Use qualquer cliente MySQL para conectar ao banco de dados na porta 3306
    - Credenciais padrão: root / 12545121
 
-## 🔄 Configuração de Versões
-
-Uma das grandes vantagens desta solução é a facilidade de alternar entre diferentes versões do MySQL/MariaDB graças ao Docker, proporcionando maior compatibilidade com seus arquivos `.ibd` de origem.
-
-### Alterando a versão do MySQL/MariaDB
-
-1. **Edite o arquivo `docker-compose.yml`**:
-
-   ```yaml
-   services:
-     db:
-       build:
-         context: ./db
-         args:
-           MYSQL_VERSION: 10.3.34  # Altere para a versão desejada
-   ```
-
-   Ou, alternativamente, modifique diretamente o `Dockerfile` na pasta `db/`:
-
-   ```dockerfile
-   ARG MYSQL_VERSION=10.3.34
-   FROM mariadb:${MYSQL_VERSION}
-   ```
-
-2. **Reconstrua o contêiner**:
-
-   ```bash
-   docker-compose down
-   docker-compose build db
-   docker-compose up -d
-   ```
-
-### Versões Compatíveis Testadas
-
-| Tipo    | Versões Testadas             | Observações                             |
-|---------|------------------------------|----------------------------------------|
-| MariaDB | 10.3.34, 10.4.28, 10.5.21    | Recomendado para maior compatibilidade  |
-| MySQL   | 5.7.42, 8.0.33               | Compatível com arquivos mais recentes   |
-
-A escolha da versão correta é crucial para o sucesso da recuperação, pois os formatos de arquivo `.ibd` podem variar significativamente entre versões.
-
 ## ⚙️ Como Funciona
 
 O processo de recuperação segue estas etapas:
@@ -183,18 +140,6 @@ O processo de recuperação segue estas etapas:
 6. **Validação**: O sistema verifica se a tabela foi recuperada com sucesso
 
 Internamente, o processo usa os recursos do InnoDB para reconstruir metadados e restabelecer a estrutura da tabela a partir dos dados armazenados no arquivo `.ibd`.
-
-## ⚠️ Limitações e Considerações
-
-É fundamental destacar algumas limitações importantes deste processo de recuperação:
-
-- **Compatibilidade de Versão**: Para garantir uma recuperação bem-sucedida, é necessário utilizar um script de criação de tabela que seja compatível com a versão atual do MySQL/MariaDB ou com a versão na qual o arquivo `.ibd` foi originalmente criado. Incompatibilidades de versão podem resultar em falhas durante o processo de recuperação.
-
-- **Ausência de Índices e Configurações**: O processo de recuperação restaura apenas os dados contidos no tablespace. Índices, chaves estrangeiras, triggers e outras configurações específicas da tabela não são recuperados automaticamente. Após a recuperação, recomenda-se:
-  1. Primeiro criar manualmente a estrutura da tabela com todos os índices e configurações necessárias
-  2. Em seguida, transferir apenas os dados da tabela recuperada para a nova estrutura através de operações de INSERT
-
-Esta abordagem garante que tanto os dados quanto a integridade estrutural da tabela sejam adequadamente restaurados.
 
 ## ❓ Solução de Problemas
 
@@ -229,19 +174,8 @@ Verifique os logs da aplicação:
 docker-compose logs webapp
 ```
 
-### Problemas com versões específicas
-
-Se encontrar problemas com uma versão específica do MySQL/MariaDB:
-```bash
-# Verifique a compatibilidade do arquivo .ibd
-docker-compose exec db mysqlcheck -u root -p --check-only nome_do_banco nome_da_tabela
-
-# Tente com outra versão seguindo as instruções da seção "Configuração de Versões"
-```
-
 ## 🔮 Implementações Futuras
 
-- **Seletor de Versões na Interface**: Implementação de um seletor de versões do MySQL/MariaDB diretamente na interface web
 - **Interface de Administração Avançada**: Painel completo para gerenciamento de bancos recuperados
 - **Suporte para arquivos FRM**: Adicionar suporte para arquivos `.frm` para melhorar a precisão da recuperação
 - **Detecção Automática de Estrutura**: Identificação e reconstrução automática da estrutura da tabela
@@ -252,8 +186,6 @@ docker-compose exec db mysqlcheck -u root -p --check-only nome_do_banco nome_da_
 - **Integração com Serviços de Nuvem**: Suporte para recuperar arquivos de buckets S3, Google Cloud Storage, etc
 - **Versão Standalone**: Versão sem Docker para ambientes com restrições
 - **Análise de Integridade**: Ferramentas para análise da integridade dos dados recuperados
-- **Multi-container com Diferentes Versões**: Possibilidade de executar múltiplos contêineres com diferentes versões simultaneamente
-- **Migração Inteligente Entre Versões**: Ferramentas para facilitar a migração de dados entre diferentes versões do MySQL/MariaDB
 
 ## 🤝 Contribuições
 
@@ -264,17 +196,6 @@ Contribuições são bem-vindas! Para contribuir:
 3. Commit suas mudanças (`git commit -m 'Adiciona nova feature'`)
 4. Push para a branch (`git push origin feature/nova-feature`)
 5. Abra um Pull Request
-
-## 💝 Apoie o Projeto
-
-Se este projeto foi útil para você e deseja contribuir para seu desenvolvimento contínuo, considere fazer uma doação:
-
-**PIX**: 
-```
-00020126360014BR.GOV.BCB.PIX0114+5562920005056520400005303986540510.005802BR5925Robson Pereira da Costa J6009SAO PAULO62140510ktr10bIeyP63046E56
-```
-
-Você também pode escanear o QR Code disponível no arquivo `qrCode.png` na pasta `webapp` do projeto.
 
 ## 📄 Licença
 
